@@ -1,0 +1,164 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {},
+    "variables": {
+        "scriptUrl": ""
+    },
+    "resources": [{
+        "type": "Microsoft.Storage/storageAccounts",
+        "apiVersion": "2018-07-01",
+        "name": "[toLower('DhaDevBoxstorage')]",
+        "location": "[resourceGroup().location]",
+        "tags": {
+            "displayName": "DhaDevBox Storage Account"
+        },
+        "properties": {
+            "accountType": "Standard_LRS"
+        }
+    },
+    {
+        "apiVersion": "2018-08-01",
+        "type": "Microsoft.Network/publicIPAddresses",
+        "name": "DhaDevBox-PublicIP",
+        "location": "[resourceGroup().location]",
+        "tags": {
+            "displayName": "PublicIPAddress"
+        },
+        "properties": {
+            "publicIPAllocationMethod": "Dynamic",
+            "dnsSettings": {
+                "domainNameLabel": "[toLower('DhaDevBox')]"
+            }
+        }
+    },
+    {
+        "apiVersion": "2018-08-01",
+        "type": "Microsoft.Network/virtualNetworks",
+        "name": "DhaDevBox-VirtualNetwork",
+        "location": "[resourceGroup().location]",
+        "tags": {
+            "displayName": "VirtualNetwork"
+        },
+        "properties": {
+            "addressSpace": {
+                "addressPrefixes": [
+                    "10.0.0.0/16"
+                ]
+            },
+            "subnets": [
+                {
+                    "name": "DhaDevBox-VirtualNetwork-Subnet",
+                    "properties": {
+                        "addressPrefix": "10.0.0.0/24"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "apiVersion": "2018-08-01",
+        "type": "Microsoft.Network/networkInterfaces",
+        "name": "DhaDevBox-NetworkInterface",
+        "location": "[resourceGroup().location]",
+        "dependsOn": [
+            "Microsoft.Network/publicIPAddresses/DhaDevBox-PublicIP",
+            "Microsoft.Network/virtualNetworks/DhaDevBox-VirtualNetwork"
+        ],
+        "tags": {
+            "displayName": "DhaDevBox Network Interface"
+        },
+        "properties": {
+            "ipConfigurations": [
+                {
+                    "name": "ipconfig1",
+                    "properties": {
+                        "privateIPAllocationMethod": "Dynamic",
+                        "publicIPAddress": {
+                            "id": "[resourceId('Microsoft.Network/publicIPAddresses', 'DhaDevBox-PublicIP')]"
+                        },
+                        "subnet": {
+                            "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', 'DhaDevBox-VirtualNetwork'), '/subnets/DhaDevBox-VirtualNetwork-Subnet')]"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "apiVersion": "2018-10-01",
+        "type": "Microsoft.Compute/virtualMachines",
+        "name": "DhaDevBox",
+        "location": "[resourceGroup().location]",
+        "dependsOn": [
+            "[concat('Microsoft.Storage/storageAccounts/', toLower('DhaDevBoxstorage'))]",
+            "Microsoft.Network/networkInterfaces/DhaDevBox-NetworkInterface"
+        ],
+        "tags": {
+            "displayName": "DhaDevBox"
+        },
+        "properties": {
+            "hardwareProfile": {
+                "vmSize": "Standard_A2"
+            },
+            "osProfile": {
+                "computerName": "DhaDevBox",
+                "adminUsername": "dhabierre",
+                "adminPassword": "dhabierre!!"
+            },
+            "storageProfile": {
+                "imageReference": {
+                    "publisher": "MicrosoftWindowsServer",
+                    "offer": "WindowsServer",
+                    "sku": "2012-R2-Datacenter",
+                    "version": "latest"
+                },
+                "osDisk": {
+                    "createOption": "FromImage"
+                }
+            },
+            "networkProfile": {
+                "networkInterfaces": [
+                    {
+                        "id": "[resourceId('Microsoft.Network/networkInterfaces', 'DhaDevBox-NetworkInterface')]"
+                    }
+                ]
+            },
+            "diagnosticsProfile": {
+                "bootDiagnostics": {
+                    "enabled": true,
+                    "storageUri": "[concat('http://', toLower('DhaDevBoxstorage'), '.blob.core.windows.net')]"
+                }
+            }
+        },
+        "resources": [
+            {
+                "apiVersion": "2015-06-15",
+                "type": "extensions",
+                "name": "config-app",
+                "location": "[resourceGroup().location]",
+                "dependsOn": [
+                    "[concat('Microsoft.Compute/virtualMachines/', 'DhaDevBox')]"
+                ],
+                "tags": {
+                    "displayName": "config-app"
+                },
+                "properties": {
+                    "publisher": "Microsoft.Compute",
+                    "type": "CustomScriptExtension",
+                    "typeHandlerVersion": "1.9",
+                    "autoUpgradeMinorVersion": true,
+                    "settings": {
+                        "fileUris": [
+                            "varaiables('scriptUrl')]"
+                        ]
+                    },
+                    "protectedSettings": {
+                        "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', './DhaDevBox.ps1')]"
+                    }
+                }
+            }
+        ]
+    }],
+    "outputs": {}
+}
