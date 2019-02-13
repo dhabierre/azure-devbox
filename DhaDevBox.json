@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {},
     "variables": {
-        "scriptUrl": ""
+        "scriptUrl": "https://raw.githubusercontent.com/dhabierre/azure-devbox/master/DhaDevBox.ps1"
     },
     "resources": [{
         "type": "Microsoft.Storage/storageAccounts",
@@ -108,9 +108,9 @@
             },
             "storageProfile": {
                 "imageReference": {
-                    "publisher": "MicrosoftWindowsServer",
-                    "offer": "WindowsServer",
-                    "sku": "2012-R2-Datacenter",
+                    "publisher": "MicrosoftVisualStudio",
+                    "offer": "VisualStudio",
+                    "sku": "VS-2017-Comm-Win10-N",
                     "version": "latest"
                 },
                 "osDisk": {
@@ -150,7 +150,7 @@
                     "autoUpgradeMinorVersion": true,
                     "settings": {
                         "fileUris": [
-                            "varaiables('scriptUrl')]"
+                            "[variables('scriptUrl')]"
                         ]
                     },
                     "protectedSettings": {
