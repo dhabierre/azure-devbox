@@ -1,7 +1,20 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
-    "parameters": {},
+    "parameters": {
+        "adminUsername": {
+            "type": "string",
+            "metadata": {
+              "description": "Username for the Virtual Machine."
+            }
+        },
+        "adminPassword": {
+            "type": "securestring",
+            "metadata": {
+              "description": "Password for the Virtual Machine."
+            }
+        }
+    },
     "variables": {
         "scriptUrl": "https://raw.githubusercontent.com/dhabierre/azure-devbox/master/DhaDevBox.ps1"
     },
@@ -13,9 +26,11 @@
         "tags": {
             "displayName": "DhaDevBox Storage Account"
         },
-        "properties": {
-            "accountType": "Standard_LRS"
-        }
+        "sku": {
+            "name": "Standard_LRS"
+          },
+          "kind": "Storage",
+          "properties": {}
     },
     {
         "apiVersion": "2018-08-01",
@@ -103,8 +118,8 @@
             },
             "osProfile": {
                 "computerName": "DhaDevBox",
-                "adminUsername": "dhabierre",
-                "adminPassword": "dhabierre!!"
+                "adminUsername": "[parameters('adminUsername')]",
+                "adminPassword": "[parameters('adminPassword')]"
             },
             "storageProfile": {
                 "imageReference": {

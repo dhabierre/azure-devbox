@@ -10,6 +10,6 @@ az vm image list-offers --location francecentral --publisher MicrosoftVisualStud
 az vm image list-skus --location francecentral --publisher MicrosoftVisualStudio --offer visualstudio --output table
 
 az group create --name devbox --location francecentral
-az group deployment validate --resource-group devbox --template-file DhaDevBox.json
-az group deployment create --name DhaDevBox --resource-group devbox --template-file DhaDevBox.json --verbose
+az group deployment validate --resource-group devbox --template-file .\DhaDevBox.json
+az group deployment create --name DhaDevBox --resource-group devbox --template-file .\DhaDevBox.json --parameters .\DhaDevBox.parameters.json --verbose
 ```
